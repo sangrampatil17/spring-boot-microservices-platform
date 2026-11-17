@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            # Public path /task-service/** is forwarded to the task service with the prefix stripped.
+            - id: task-service
+              uri: ${TASK_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/task-service/**
+              filters:
+                - StripPrefix=1
+          default-filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true

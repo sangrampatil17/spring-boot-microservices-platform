@@ -1,0 +1,28 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: task-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/taskdb}
+
+app:
+  jwt:
+    # Override JWT_SECRET in every real environment (min 32 chars). This default is for local demo only.
+    secret: ${JWT_SECRET:local-demo-secret-change-me-0123456789abcdef}
+    ttl-minutes: 60
+  demo:
+    admin-password: ${DEMO_ADMIN_PASSWORD:admin-demo-pass}
+    user-password: ${DEMO_USER_PASSWORD:user-demo-pass}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true

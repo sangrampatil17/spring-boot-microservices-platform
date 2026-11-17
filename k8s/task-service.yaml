@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-service
+  labels: { app: task-service }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: task-service }
+  template:
+    metadata:
+      labels: { app: task-service }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "8081"
+    spec:
+      containers:
+        - name: task-service
+          image: ghcr.io/sangrampatil17/task-service:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: MONGODB_URI
+              valueFrom: { secretKeyRef: { name: task-service-secrets, key: mongodb-uri } }
+            - name: JWT_SECRET
+              valueFrom: { secretKeyRef: { name: task-service-secrets, key: jwt-secret } }
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: 8081 }
+            initialDelaySeconds: 15
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: 8081 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-service
+spec:
+  selector: { app: task-service }
+  ports:
+    - port: 8081
+      targetPort: 8081
